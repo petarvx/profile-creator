@@ -27,21 +27,26 @@ export const usePublishFile = () => {
     BroadcastTransactionData
   >(
     async function (data) {
-      await connectToPanda();
+      try {
+        await connectToPanda();
 
-      const bData = [B_PREFIX, data.content, data.contentType, data.encoding];
-      const signedPayload = signTransaction([...bData]);
-      const { script } = buildBaseTx(signedPayload);
+        const bData = [B_PREFIX, data.content, data.contentType, data.encoding];
+        const signedPayload = signTransaction([...bData]);
+        const { script } = buildBaseTx(signedPayload);
 
-      // publish tx via panda wallet
-      const { txid, rawtx } = (await sendBsv([
-        {
-          script: script.to_hex(),
-          satoshis: 0,
-        },
-      ])) as SendBsvResponse;
+        // publish tx via panda wallet
+        const { txid, rawtx } = (await sendBsv([
+          {
+            script: script.to_hex(),
+            satoshis: 0,
+          },
+        ])) as SendBsvResponse;
 
-      return { transactionId: txid, rawTransaction: rawtx };
+        return { transactionId: txid, rawTransaction: rawtx };
+      } catch (error) {
+        console.log("usePublishFile", { error });
+        return { transactionId: "", rawTransaction: "" };
+      }
     },
     {
       onSuccess() {
