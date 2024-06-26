@@ -14,7 +14,7 @@ export const usePanda = () => {
       return;
     }
 
-    if (pubKey) {
+    if (!pubKey) {
       const identityPubKey = await connect();
 
       if (identityPubKey) {
