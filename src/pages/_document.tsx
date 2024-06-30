@@ -4,7 +4,7 @@ export default function Document() {
   return (
     <Html lang="en">
       <Head />
-      <body className={`h-screen`}>
+      <body style={{ minHeight: "100vh" }}>
         <Main />
         <NextScript />
       </body>
