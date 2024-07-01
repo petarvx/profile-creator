@@ -17,6 +17,15 @@ export const SelectAdditionalField = ({
   append,
   updateFees,
 }: SelectAdditionalFieldProps) => {
+  const addField = (fieldName: string) => {
+    const field: Field = ALL_ADDITIONAL_FIELDS.find(
+      (f) => f.name === fieldName
+    )!;
+    append(field);
+    updateFees("add", field);
+    setIsAddingField(false);
+  };
+
   return (
     <Select
       fullWidth
@@ -35,10 +44,7 @@ export const SelectAdditionalField = ({
           return;
         }
 
-        const field = ALL_ADDITIONAL_FIELDS.find((f) => f.name === value)!;
-        append(field);
-        updateFees("add", field);
-        setIsAddingField(false);
+        addField(value);
       }}
     >
       <MenuItem key="closeSelect" value={CLOSE_SELECT}>

@@ -1,18 +1,20 @@
+import { toast } from "react-toastify";
+
 export const useNotifyIndexer = () => (rawTx: string) =>
   new Promise((resolve, reject) => {
-    fetch("https://bmap-api-production.up.railway.app/ingest", {
+    fetch(`https://ordinals.gorillapool.io/api/tx/${rawTx}/submit`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ rawTx }),
     })
       .then((resp) => {
-        console.log({ resp });
-        const json = resp.json();
-        resolve(json);
+        if (resp.ok) {
+          toast.success("Profile created successfully!");
+        }
       })
       .catch((e) => {
-        reject(e);
+        toast.error("Something went wrong. Please try again");
+        console.log(e);
       });
   });

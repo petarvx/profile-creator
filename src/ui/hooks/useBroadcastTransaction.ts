@@ -47,8 +47,8 @@ export const useBroadcastTransaction = () => {
       return { transactionId: txid, rawTransaction: rawtx };
     },
     {
-      onSuccess({ rawTransaction }) {
-        notifyIndexer(rawTransaction);
+      onSuccess({ rawTransaction, transactionId }) {
+        notifyIndexer(transactionId);
       },
       onError(error) {
         console.error(error);
