@@ -14,6 +14,7 @@ export const useNotifyIndexer = () => (rawTx: string) =>
         }
       })
       .catch((e) => {
-        reject(e);
+        toast.error("Something went wrong. Please try again");
+        console.log(e);
       });
   });

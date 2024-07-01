@@ -21,13 +21,31 @@ type ImageTransaction = {
   transactionId: string;
   rawTransaction: string;
 };
+
 type PublishedImages = {
   image: ImageTransaction | null;
   logo: ImageTransaction | null;
   banner: ImageTransaction | null;
 };
 
+const DEFAULT_FIELDS: Field[] = [
+  { name: "image", label: "Image", type: "image", fee: 0 },
+  {
+    name: "email",
+    label: "Email",
+    type: "text",
+    fee: 0,
+  },
+  {
+    name: "description",
+    label: "Description",
+    type: "text",
+    fee: 0,
+  },
+];
+
 export const ALL_ADDITIONAL_FIELDS: Field[] = [
+  // only "name" is always present and cannot be removed
   { name: "image", label: "Image", type: "image", fee: 0 },
   {
     name: "location",
@@ -158,7 +176,8 @@ export const Form = ({ updateFees, totalFee }: FormProps) => {
     handleSubmit,
     watch,
     setValue,
-    formState: { errors },
+    formState: { errors, isSubmitSuccessful },
+    reset,
   } = useForm<FormSchemaType>({
     resolver: zodResolver(schema),
   });
@@ -217,8 +236,6 @@ export const Form = ({ updateFees, totalFee }: FormProps) => {
   };
 
   const onSubmit = async (data: FormData) => {
-    console.log(data);
-
     const {
       name,
       image,
@@ -227,8 +244,10 @@ export const Form = ({ updateFees, totalFee }: FormProps) => {
       location,
       description,
       email,
+      paymail,
       url,
       address,
+      bitcoinAddress,
     } = data;
 
     const publishedImages = await handleImageFiles(image, logo, banner);
@@ -241,8 +260,10 @@ export const Form = ({ updateFees, totalFee }: FormProps) => {
       location,
       description,
       email,
+      paymail,
       url,
       address,
+      bitcoinAddress,
     });
 
     const balance = await getBalance();
@@ -286,7 +307,9 @@ export const Form = ({ updateFees, totalFee }: FormProps) => {
   const renderField = (field: Field, idx: number) => {
     switch (field?.type) {
       case "image":
+        const isRegularImage = field.name === "image";
         const isBanner = field.name === "banner";
+        const fieldTextImage = image?.[0] ? image?.[0]?.name : "Image";
         const fieldTextBanner = banner?.[0]
           ? banner?.[0]?.name
           : "Banner Image";
@@ -298,7 +321,11 @@ export const Form = ({ updateFees, totalFee }: FormProps) => {
               color="rgba(255, 255, 255, .7)"
               border="1px solid rgba(255,255,255, .23)"
             >
-              {isBanner ? fieldTextBanner : fieldTextLogo}
+              {isBanner
+                ? fieldTextBanner
+                : isRegularImage
+                ? fieldTextImage
+                : fieldTextLogo}
             </Box>
             <Button
               component="label"
@@ -317,7 +344,7 @@ export const Form = ({ updateFees, totalFee }: FormProps) => {
             <Box
               className="absolute right-0 top-0 text-red-500 p-4 cursor-pointer"
               style={{ right: "-45px" }}
-              //onClick={() => handleRemoveField(field, idx)}
+              onClick={() => handleRemoveField(field, idx)}
             >
               X
             </Box>
@@ -340,7 +367,9 @@ export const Form = ({ updateFees, totalFee }: FormProps) => {
             >
               X
             </Box>
-            {errors[field.name] && <p>{errors[field.name]?.message}</p>}
+            {errors[field.name] && (
+              <p className="text-red-500">{errors[field.name]?.message}</p>
+            )}
           </Box>
         );
     }
@@ -348,25 +377,33 @@ export const Form = ({ updateFees, totalFee }: FormProps) => {
 
   const addDefaultFields = () => {
     if (!fields.length) {
-      const field: Field = ALL_ADDITIONAL_FIELDS.find(
-        (f) => f.name === "location"
-      )!;
-      const field2: Field = ALL_ADDITIONAL_FIELDS.find(
-        (f) => f.name === "email"
-      )!;
-      append(field);
-      append(field2);
+      DEFAULT_FIELDS.forEach((field) => {
+        const fieldToAdd = ALL_ADDITIONAL_FIELDS.find(
+          (f) => f.name === field.name
+        )!;
+
+        append(fieldToAdd);
+      });
     }
   };
 
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      addDefaultFields();
-    }, 500);
+  // useEffect(() => {
+  //   const timeoutId = setTimeout(() => {
+  //     addDefaultFields();
+  //   }, 200);
+  //   return () => clearTimeout(timeoutId);
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, []);
 
-    return () => clearTimeout(timeoutId);
+  useEffect(() => {
+    if (isSubmitSuccessful) {
+      reset();
+      fields.forEach((field, index) => {
+        handleRemoveField(field as Field, index);
+      });
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [isSubmitSuccessful]);
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="mb-28 md:mb-0 pr-10">
@@ -374,38 +411,6 @@ export const Form = ({ updateFees, totalFee }: FormProps) => {
         <Box className="w-full relative">
           <TextField fullWidth label="Name" {...register("name")} />
         </Box>
-
-        {/* <Box className="flex w-full relative h-[56px]">
-          <Box
-            className="flex w-full items-center py-0 px-3 rounded-none text-ellipsis overflow-hidden "
-            color="rgba(255, 255, 255, .7)"
-            border="1px solid rgba(255,255,255, .23)"
-          >
-            {image?.[0]?.name ?? "Image"}
-          </Box>
-          <Button
-            component="label"
-            role={undefined}
-            tabIndex={-1}
-            color="secondary"
-            className="min-w-fit text-sm rounded-none"
-          >
-            Select file
-            <input
-              type="file"
-              style={{ display: "none" }}
-              {...register("image")}
-            />
-          </Button>
-          <Box
-            className="absolute right-0 top-0 text-red-500 p-4 cursor-pointer"
-            style={{ marginRight: "-45px" }}
-          >
-            X
-          </Box>
-        </Box> */}
-        {/* <TextField fullWidth label="Location" {...register("location")} />
-        <TextField fullWidth label="Description" {...register("description")} /> */}
 
         {fields.map((f, i: number) => renderField(f as unknown as Field, i))}
 

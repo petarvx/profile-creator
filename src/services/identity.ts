@@ -1,19 +1,3 @@
-// type RequiredFields = {
-//   name: string;
-//   imageTxId: string;
-//   location: string;
-//   description: string;
-// };
-
-// type AdditionalFields = Partial<{
-//   additionalFields: {
-//     address?: string;
-//     email?: string;
-//   };
-// }>;
-
-// type AllFields = RequiredFields & AdditionalFields;
-
 interface Place {
   name?: string;
   "@type": "Place";
@@ -29,7 +13,9 @@ interface Data {
   banner?: string;
   logo?: string;
   image?: string;
+  email?: string;
   paymail?: string;
+  address?: string;
   bitcoinAddress?: string;
 }
 
@@ -59,27 +45,11 @@ export const buildIdentity = ({
   address,
   paymail,
   bitcoinAddress,
-}: //additionalFields,
-AllFields): string => {
-  // const address = additionalFields?.address
-  //   ? { address: additionalFields?.address }
-  //   : {};
-  // const email = additionalFields?.email
-  //   ? { email: additionalFields?.email }
-  //   : {};
-
+}: AllFields): string => {
   const identity: Data = {
     "@context": "https://schema.org",
     "@type": "Person",
     alternateName: name,
-    //image: `b://${imageTxId}`,
-    // homeLocation: {
-    //   "@type": "Place",
-    //   name: location,
-    // },
-    //  description,
-    //...address,
-    //...email,
   };
 
   if (imageTxId) {
@@ -110,11 +80,19 @@ AllFields): string => {
   }
 
   if (email) {
-    identity["paymail"] = email;
+    identity["email"] = email;
+  }
+
+  if (paymail) {
+    identity["paymail"] = paymail;
   }
 
   if (address) {
-    identity["bitcoinAddress"] = address;
+    identity["address"] = address;
+  }
+
+  if (bitcoinAddress) {
+    identity["bitcoinAddress"] = bitcoinAddress;
   }
 
   return JSON.stringify(identity);
